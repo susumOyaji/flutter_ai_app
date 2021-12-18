@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:google_ml_kit/google_ml_kit.dart';
-import './secondpage.dart';  
-
+import './secondpage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -28,34 +27,48 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
-  
 
   @override
   State<MyHomePage> createState() => TakePictureScreenState();
 }
 
-
-
 class TakePictureScreenState extends State<MyHomePage> {
-  final image = await _controller.takePicture();
-  final inputimage = await InputImage.fromFilePath(image.path);
+  //final image = await _controller.takePicture();
+  //final inputimage = await InputImage.fromFilePath(image.path);
 
-  
   late CameraController _controller;
-
-
   late Future<void> _initializeControllerFuture;
 
-  FaceDetector faceDetector =
-      GoogleMlKit.vision.faceDetector(FaceDetectorOptions(
+  @override
+  void initState() {
+    super.initState();
+    // To display the current output from the Camera,
+    // create a CameraController.
+    _controller = CameraController(
+      // Get a specific camera from the list of available cameras.
+      widget.camera,
+      // Define the resolution to use.
+      ResolutionPreset.medium,
+    );
+
+    // Next, initialize the controller. This returns a Future.
+    _initializeControllerFuture = _controller.initialize();
+  }
+
+  @override
+  void dispose() {
+    // Dispose of the controller when the widget is disposed.
+    _controller.dispose();
+    super.dispose();
+  }
+
+  FaceDetector faceDetector = GoogleMlKit.vision.faceDetector(
+      FaceDetectorOptions(
           enableClassification: true,
           enableLandmarks: true,
           enableTracking: true));
 
-
-
-
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -97,20 +110,16 @@ class TakePictureScreenState extends State<MyHomePage> {
               ),
             ),
           );
-        },//onPressed
+        }, //onPressed
       ),
     );
   }
-  }
+}
 
-
-
-
-  Future detectFace(InputImage inputImage) async {
+Future detectFace(InputImage inputImage) async {
   final faces = await faceDetector.processImage(inputImage);
   String resText = "No Face";
   print('Found ${faces.length} faces');
-
 
   if (faces.length != 0) {
     for (Face face in faces) {
@@ -129,7 +138,6 @@ class TakePictureScreenState extends State<MyHomePage> {
         //笑顔度を返す
         int intsmileProb = (smileProb! * 100).round();
         resText = "SMILE $intsmileProb %";
-
       }
 
       // If face tracking was enabled with FaceDetectorOptions:
@@ -141,8 +149,6 @@ class TakePictureScreenState extends State<MyHomePage> {
   }
   return resText;
 }
-
-
 
 // A widget that displays the picture taken by the user.
 class DisplayPictureScreen extends StatelessWidget {
@@ -156,9 +162,9 @@ class DisplayPictureScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Display the Picture'),
-          backgroundColor: Colors.blue
-      ),
+      appBar: AppBar(
+          title: const Text('Display the Picture'),
+          backgroundColor: Colors.blue),
       // The image is stored as a file on the device. Use the `Image.file`
       // constructor with the given path to display the image.
       body: Stack(children: [
@@ -180,4 +186,3 @@ class DisplayPictureScreen extends StatelessWidget {
     );
   }
 }
-
